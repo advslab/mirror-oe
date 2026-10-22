@@ -1,0 +1,40 @@
+name: source probe
+
+# Manual only. Checks from a runner whether the source's two hosts answer and
+# how fast: on the website API, page 1 of the CVE database, one pair's product
+# statuses and detail, page 1 of the notices and one notice; on the file host,
+# both indexes and one file of each. Reports latency and status codes. Stores
+# nothing.
+# Set the repository secrets SOURCE_BASE to the website API base URL and
+# CSAF_BASE to the file host's base URL (Settings → Secrets and variables →
+# Actions → Secrets); both are masked in every log.
+on:
+  workflow_dispatch:
+    inputs:
+      pace:
+        description: "seconds between requests"
+        required: false
+        default: "1"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: refuse without the source secrets
+        env:
+          BASE: ${{ secrets.SOURCE_BASE }}
+          CSAF_BASE: ${{ secrets.CSAF_BASE }}
+        run: |
+          if [ -z "$BASE" ]; then echo "::error::repository secret SOURCE_BASE is not set"; exit 1; fi
+          if [ -z "$CSAF_BASE" ]; then echo "::error::repository secret CSAF_BASE is not set"; exit 1; fi
+      - name: probe
+        env:
+          BASE: ${{ secrets.SOURCE_BASE }}
+          CSAF_BASE: ${{ secrets.CSAF_BASE }}
+          PACE: ${{ inputs.pace }}
+        run: |
+          chmod +x bin/source-probe
+          sha256sum bin/source-probe
+          bin/source-probe
