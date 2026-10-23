@@ -51,6 +51,10 @@ on:
         description: "minutes to wait after 8 calls in a row failed the same way (default 30)"
         required: false
         default: ""
+      force_check:
+        description: "true reads every year's origin listing this run, whatever the daily gate says"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -79,6 +83,7 @@ jobs:
           BASE: ${{ secrets.SOURCE_BASE }}
           CSAF_BASE: ${{ secrets.CSAF_BASE }}
           CSAF_ORIGIN: ${{ secrets.CSAF_ORIGIN }}
+          FORCE_CHECK: ${{ inputs.force_check || 'false' }}
           BUDGET: ${{ inputs.budget || '330' }}
           PACE: ${{ inputs.pace || '0.15' }}
           BURST: ${{ inputs.burst }}
